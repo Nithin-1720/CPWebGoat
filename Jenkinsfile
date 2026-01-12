@@ -1,5 +1,14 @@
 pipeline{
     agent any
+    
+  environment {
+      // SEMGREP_BASELINE_REF = ""
+
+        SEMGREP_APP_TOKEN = credentials('SEMGREP_APP_TOKEN')
+        SEMGREP_PR_ID = "${env.CHANGE_ID}"
+
+      //  SEMGREP_TIMEOUT = "300"
+    }
     tools{
         maven 'maven3'
     }
@@ -19,6 +28,14 @@ pipeline{
                 sh 'mvn clean install -DskipTests -P!start-server'
             }
         }
+        stage('Semgrep-Scan') {
+          steps {
+            sh 'pip3 install semgrep'
+            sh 'semgrep ci'
+          }
+      }
+    }
+  }
         stage('docker build'){
             steps{
                 sh 'docker build -t nithinragesh/webgoat:latest .'

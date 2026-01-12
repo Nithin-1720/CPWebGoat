@@ -4,6 +4,7 @@ pipeline {
     environment {
         SEMGREP_APP_TOKEN = credentials('SEMGREP_APP_TOKEN')
         SEMGREP_PR_ID = "${env.CHANGE_ID}"
+        NVD_API_KEY = credentials('NVD_API_KEY')
     }
 
     tools {
@@ -38,17 +39,18 @@ pipeline {
                 sh 'semgrep ci'
             }
         }
+
         stage('SCA - OWASP Dependency Check') {
-            steps {
-                dependencyCheck additionalArguments: '''
-                --scan .
-                --format HTML
-                --out dependency-check-report
-                --failOnCVSS 7
-                ''', odcInstallation: 'dependency-check'
-             }
+    steps {
+        dependencyCheck additionalArguments: """
+            --scan .
+            --format HTML
+            --out dependency-check-report
+            --nvdApiKey ${NVD_API_KEY}
+            --failOnCVSS 7
+        """, odcInstallation: 'dependency-check'
         }
- 
+    }
         stage('Docker Build') {
             steps {
                 sh 'docker build -t nithinragesh/webgoat:latest .'
@@ -76,4 +78,5 @@ pipeline {
         }
     }
 }
+
 

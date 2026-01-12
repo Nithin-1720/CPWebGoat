@@ -1,61 +1,69 @@
-pipeline{
+pipeline {
     agent any
-    
-  environment {
-      // SEMGREP_BASELINE_REF = ""
 
+    environment {
         SEMGREP_APP_TOKEN = credentials('SEMGREP_APP_TOKEN')
         SEMGREP_PR_ID = "${env.CHANGE_ID}"
-
-      //  SEMGREP_TIMEOUT = "300"
     }
-    tools{
+
+    tools {
         maven 'maven3'
     }
-    stages{
-        stage('git clone'){
-            steps{
-                git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/Nithin-1720/CPWebGoat.git'
+
+    stages {
+
+        stage('Git Clone') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github-creds',
+                    url: 'https://github.com/Nithin-1720/CPWebGoat.git'
             }
         }
-        stage('mvn test'){
-            steps{
+
+        stage('Maven Test') {
+            steps {
                 sh 'mvn clean test -P!start-server'
             }
         }
-        stage('mvn build'){
-            steps{
+
+        stage('Maven Build') {
+            steps {
                 sh 'mvn clean install -DskipTests -P!start-server'
             }
         }
-        stage('Semgrep-Scan') {
-          steps {
-            sh 'pip3 install semgrep'
-            sh 'semgrep ci'
-          }
-      }
-    }
-  }
-        stage('docker build'){
-            steps{
+
+        stage('Semgrep Scan') {
+            steps {
+                sh 'pip3 install semgrep'
+                sh 'semgrep ci'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
                 sh 'docker build -t nithinragesh/webgoat:latest .'
             }
         }
-        stage('docker push to hub'){
-            steps{
-                script{
-                    withCredentials([string(credentialsId: 'Docker-creds', variable: 'Dockerhub')]) {
-                        sh 'docker login -u nithinragesh -p ${Dockerhub}'   
+
+        stage('Docker Push to Hub') {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'Docker-creds', variable: 'DOCKERHUB_TOKEN')
+                    ]) {
+                        sh 'docker login -u nithinragesh -p $DOCKERHUB_TOKEN'
                     }
-                    sh 'docker push nithinragesh/webgoat:latest'
-		    sh 'docker rm -f webgoat'
                 }
+                sh 'docker push nithinragesh/webgoat:latest'
+                sh 'docker rm -f webgoat || true'
             }
         }
-        stage('docker run'){
-            steps{
-                sh 'docker run -d -p 8040:8080 --name=webgoat nithinragesh/webgoat'
+
+        stage('Docker Run') {
+            steps {
+                sh 'docker run -d -p 8040:8080 --name=webgoat nithinragesh/webgoat:latest'
             }
         }
     }
 }
+

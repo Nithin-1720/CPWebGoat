@@ -38,7 +38,17 @@ pipeline {
                 sh 'semgrep ci'
             }
         }
-
+        stage('SCA - OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: '''
+                --scan .
+                --format HTML
+                --out dependency-check-report
+                --failOnCVSS 7
+                ''', odcInstallation: 'dependency-check'
+             }
+        }
+ 
         stage('Docker Build') {
             steps {
                 sh 'docker build -t nithinragesh/webgoat:latest .'

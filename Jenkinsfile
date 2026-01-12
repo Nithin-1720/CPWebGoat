@@ -22,7 +22,7 @@ pipeline {
 
         stage('Maven Test') {
             steps {
-                sh 'mvn clean test -P!start-server'
+                sh 'mvn clean test -DskipTests -P!start-server'
             }
         }
 

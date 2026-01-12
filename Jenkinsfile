@@ -31,12 +31,8 @@ pipeline{
                         sh 'docker login -u nithinragesh -p ${Dockerhub}'   
                     }
                     sh 'docker push nithinragesh/webgoat:latest'
+		    sh 'docker rm -f webgoat'
                 }
-            }
-        }
-        stage('docker container remove'){
-            steps{
-                sh 'docker rm -f webgoat'
             }
         }
         stage('docker run'){

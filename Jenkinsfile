@@ -57,6 +57,12 @@ pipeline {
             }
         }
 
+         stage('Scan Image') {
+            steps {
+                sh 'trivy image nithinragesh/webgoat:latest'
+            }
+        }
+
         stage('Docker Push to Hub') {
             steps {
                 script {
@@ -76,6 +82,7 @@ pipeline {
                 sh 'docker run -d -p 8040:8080 --name=webgoat nithinragesh/webgoat:latest'
             }
         }
+        
     }
 }
 

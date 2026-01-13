@@ -91,12 +91,13 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm --network=host \
+                    -u $(id -u):$(id -g) \
                     -v $(pwd):/zap/wrk \
                     zaproxy/zap-stable \
                     zap-baseline.py \
                     -t http://10.40.0.242:8040/WebGoat \
-                    -r zap-report.html
-
+                    -r zap-report.html \
+                    -I
                 '''
             }
         }

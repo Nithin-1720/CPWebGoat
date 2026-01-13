@@ -90,12 +90,13 @@ pipeline {
         stage('DAST Scan - OWASP ZAP') {
             steps {
                 sh '''
-                    docker run --rm \
-                    --network="host" \
+                    docker run --rm --network=host \
+                    -v $(pwd):/zap/wrk \
                     zaproxy/zap-stable \
                     zap-baseline.py \
                     -t http://10.40.0.242:8040/WebGoat \
                     -r zap-report.html
+
                 '''
             }
         }

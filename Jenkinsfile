@@ -60,7 +60,12 @@ pipeline {
 
         stage('Scan Image') {
             steps {
-                sh 'trivy image nithinragesh/webgoat:latest'
+                sh '''
+                    trivy image \
+                    --format json \
+                    --output trivy-report.json \
+                    nithinragesh/webgoat:latest
+                '''
             }
         }
 
@@ -87,9 +92,9 @@ pipeline {
                 sh '''
                     docker run --rm \
                     --network="host" \
-                    owasp/zap2docker-stable \
+                    zaproxy/zap-stable \
                     zap-baseline.py \
-                    -t http://localhost:8081/WebGoat \
+                    -t http://10.40.0.242:8040/WebGoat \
                     -r zap-report.html
                 '''
             }
@@ -99,6 +104,11 @@ pipeline {
 
 post {
     always {
-        archiveArtifacts artifacts: 'zap-report.html', fingerprint: true
+        archiveArtifacts artifacts: '''
+            zap-report.html,
+            dependency-check-report/dependency-check-report.html,
+            trivy-report.json
+        ''', fingerprint: true
     }
 }
+

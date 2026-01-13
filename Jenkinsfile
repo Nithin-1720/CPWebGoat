@@ -16,8 +16,8 @@ pipeline {
         stage('Git Clone') {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github-creds',
-                    url: 'https://github.com/Nithin-1720/CPWebGoat.git'
+                credentialsId: 'github-creds',
+                url: 'https://github.com/Nithin-1720/CPWebGoat.git'
             }
         }
 
@@ -33,31 +33,32 @@ pipeline {
             }
         }
 
-        stage('Semgrep Scan') {
+        stage('SCA - OWASP Dependency Check') {
+            steps {
+                dependencyCheck additionalArguments: """
+                --scan .
+                --format HTML
+                --out dependency-check-report
+                --nvdApiKey ${NVD_API_KEY}
+                --failOnCVSS 7
+                """, odcInstallation: 'dependency-check'
+            }
+        }
+
+        stage('SAST - Semgrep Scan') {
             steps {
                 sh 'pip3 install semgrep'
                 sh 'semgrep ci'
             }
         }
-
-        stage('SCA - OWASP Dependency Check') {
-    steps {
-        dependencyCheck additionalArguments: """
-            --scan .
-            --format HTML
-            --out dependency-check-report
-            --nvdApiKey ${NVD_API_KEY}
-            --failOnCVSS 7
-        """, odcInstallation: 'dependency-check'
-        }
-    }
+        
         stage('Docker Build') {
             steps {
                 sh 'docker build -t nithinragesh/webgoat:latest .'
             }
         }
 
-         stage('Scan Image') {
+        stage('Scan Image') {
             steps {
                 sh 'trivy image nithinragesh/webgoat:latest'
             }
@@ -66,9 +67,7 @@ pipeline {
         stage('Docker Push to Hub') {
             steps {
                 script {
-                    withCredentials([
-                        string(credentialsId: 'Docker-creds', variable: 'DOCKERHUB_TOKEN')
-                    ]) {
+                    withCredentials([string(credentialsId: 'Docker-creds', variable: 'DOCKERHUB_TOKEN')]) {
                         sh 'docker login -u nithinragesh -p $DOCKERHUB_TOKEN'
                     }
                 }
@@ -82,6 +81,26 @@ pipeline {
                 sh 'docker run -d -p 8040:8080 --name=webgoat nithinragesh/webgoat:latest'
             }
         }
+
+        stage('DAST Scan - OWASP ZAP') {
+            steps {
+                sh '''
+                    docker run --rm \
+                    --network="host" \
+                    owasp/zap2docker-stable \
+                    zap-baseline.py \
+                    -t http://localhost:8081/WebGoat \
+                    -r zap-report.html
+                '''
+            }
+        }
+        
+        post {
+            always {
+                archiveArtifacts artifacts: 'zap-report.html', fingerprint: true
+            }
+        }
+
         
     }
 }

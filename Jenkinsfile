@@ -96,13 +96,28 @@ pipeline {
                     zaproxy/zap-stable \
                     zap-baseline.py \
                     -t http://10.40.0.242:8040/WebGoat \
-                    -n webgoat.context \
-                    -r zap-report.html \
+                    -x zap-report.xml \
                     -I \
                     --autooff
                 '''
             }
         }
+
+        stage('Upload DAST to DefectDojo') {
+            steps {
+                withCredentials([string(credentialsId: 'DEFECTDOJO_API_KEY', variable: 'DD_API_KEY')]) {
+                    sh '''
+                        curl -X POST "http://10.40.0.242:8081/api/v2/import-scan/" \
+                        -H "Authorization: Token $DD_API_KEY" \
+                        -F "scan_type=ZAP Scan" \
+                        -F "file=@zap-report.xml" \
+                        -F "engagement=1" \
+                        -F "minimum_severity=Low"
+                    '''
+                }
+            }
+        }
+
     }
 }
 

@@ -96,8 +96,10 @@ pipeline {
                     zaproxy/zap-stable \
                     zap-baseline.py \
                     -t http://10.40.0.242:8040/WebGoat \
+                    -n webgoat.context \
                     -r zap-report.html \
-                    -I
+                    -I \
+                    --autooff
                 '''
             }
         }

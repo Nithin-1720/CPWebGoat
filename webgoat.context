@@ -1,0 +1,12 @@
+<context>
+  <name>WebGoat</name>
+  <urls>
+    <includeRegex>http://10.40.0.242:8040/WebGoat.*</includeRegex>
+  </urls>
+  <authentication>
+    <method>form</method>
+    <loginUrl>http://10.40.0.242:8040/WebGoat/login</loginUrl>
+    <loginRequestBody>username=qwerty1234&password=qwerty</loginRequestBody>
+  </authentication>
+</context>
+

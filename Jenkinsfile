@@ -90,12 +90,22 @@ pipeline {
         stage('DAST Scan - OWASP ZAP') {
             steps {
                 sh '''
+                    echo "Waiting for WebGoat to be ready..."
+                    for i in {1..30}; do
+                      if curl -s http://localhost:8040/WebGoat > /dev/null; then
+                        echo "WebGoat is UP"
+                        break
+                      fi
+                      echo "WebGoat not ready yet... retrying"
+                      sleep 5
+                    done
+            
                     docker run --rm --network=host \
-                    zaproxy/zap-stable \
-                    zap-baseline.py \
-                    -t http://localhost:8040/WebGoat \
-                    -I \
-                    --autooff
+                      zaproxy/zap-stable \
+                      zap-baseline.py \
+                      -t http://localhost:8040/WebGoat \
+                      -I \
+                      --autooff
                 '''
             }
         }

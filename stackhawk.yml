@@ -1,0 +1,18 @@
+app:
+  applicationId: webgoat
+  env: development
+
+hawk:
+  apiKey: ${STACKHAWK_API_KEY}
+
+scan:
+  targets:
+    - http://10.40.0.242:8040/WebGoat
+
+spider:
+  base: true
+  ajax: true
+
+failureThreshold:
+  severity: high
+

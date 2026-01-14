@@ -90,33 +90,16 @@ pipeline {
         stage('DAST Scan - OWASP ZAP') {
             steps {
                 sh '''
-                    docker run --rm --network=host \
-                    -u $(id -u):$(id -g) \
-                    -v $(pwd):/zap/wrk \
+                    docker run --rm \
                     zaproxy/zap-stable \
                     zap-baseline.py \
                     -t http://10.40.0.242:8040/WebGoat \
-                    -x zap-report.xml \
                     -I \
                     --autooff
                 '''
             }
         }
 
-        stage('Upload DAST to DefectDojo') {
-            steps {
-                withCredentials([string(credentialsId: 'DEFECTDOJO_API_KEY', variable: 'DD_API_KEY')]) {
-                    sh '''
-                        curl -X POST "http://10.40.0.242:8081/api/v2/import-scan/" \
-                        -H "Authorization: Token $DD_API_KEY" \
-                        -F "scan_type=ZAP Scan" \
-                        -F "file=@zap-report.xml" \
-                        -F "engagement=1" \
-                        -F "minimum_severity=Low"
-                    '''
-                }
-            }
-        }
 
     }
 }
@@ -124,7 +107,6 @@ pipeline {
 post {
     always {
         archiveArtifacts artifacts: '''
-            zap-report.html,
             dependency-check-report/dependency-check-report.html,
             trivy-report.json
         ''', fingerprint: true

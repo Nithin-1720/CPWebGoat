@@ -90,10 +90,9 @@ pipeline {
         stage('DAST Scan - OWASP ZAP') {
             steps {
                 sh '''
-                    docker run --rm \
-                    zaproxy/zap-stable \
+                    docker run --rm zaproxy/zap-stable \
                     zap-baseline.py \
-                    -t http://10.40.0.242:8040/WebGoat \
+                    -t http://172.17.0.1:8040/WebGoat \
                     -I \
                     --autooff
                 '''

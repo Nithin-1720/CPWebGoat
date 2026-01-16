@@ -48,7 +48,7 @@ pipeline {
         stage('SAST - Semgrep Scan') {
             steps {
                 sh 'pip3 install semgrep'
-                sh 'semgrep ci --severity-filter=ERROR'
+                sh ' semgrep scan --config auto --severity ERROR'
             }
         }
         

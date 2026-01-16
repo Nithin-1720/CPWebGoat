@@ -40,7 +40,7 @@ pipeline {
                 --format HTML
                 --out dependency-check-report
                 --nvdApiKey ${NVD_API_KEY}
-                --failOnCVSS 7
+                --failOnCVSS 5
                 """, odcInstallation: 'dependency-check'
             }
         }
@@ -48,7 +48,7 @@ pipeline {
         stage('SAST - Semgrep Scan') {
             steps {
                 sh 'pip3 install semgrep'
-                sh 'semgrep ci'
+                sh 'semgrep ci --severity ERROR'
             }
         }
         
@@ -62,6 +62,8 @@ pipeline {
             steps {
                 sh '''
                     trivy image \
+                    --severity CRITICAL,HIGH \
+                    --exit-code 1 \
                     --format json \
                     --output trivy-report.json \
                     nithinragesh/webgoat:latest
@@ -104,8 +106,8 @@ pipeline {
                       zaproxy/zap-stable \
                       zap-baseline.py \
                       -t http://localhost:8040/WebGoat \
-                      -I \
-                      --autooff
+                      -r zap-report.html \
+                      -I
                 '''
             }
         }

@@ -21,6 +21,19 @@ pipeline {
             }
         }
 
+        stage('Secrets Scan - TruffleHog (Repo)') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -v "$(pwd):/repo" \
+                  trufflesecurity/trufflehog:latest \
+                  filesystem /repo \
+                  --fail
+                '''
+            }
+        }
+
+
         stage('Maven Test') {
             steps {
                 sh 'mvn clean test -DskipTests -P!start-server'
@@ -70,6 +83,19 @@ pipeline {
                 '''
             }
         }
+
+        stage('Secrets Scan - TruffleHog (Docker Image)') {
+            steps {
+                sh '''
+                docker run --rm \
+                  -v /var/run/docker.sock:/var/run/docker.sock \
+                  trufflesecurity/trufflehog:latest \
+                  docker nithinragesh/webgoat:latest \
+                  --fail
+                '''
+            }
+        }
+
 
         stage('Docker Push to Hub') {
             steps {

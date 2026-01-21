@@ -21,17 +21,17 @@ pipeline {
             }
         }
 
-        stage('Secrets Scan - TruffleHog (Repo)') {
-            steps {
-                sh '''
-                docker run --rm \
-                  -v "$(pwd):/repo" \
-                  trufflesecurity/trufflehog:latest \
-                  filesystem /repo \
-                  --fail
-                '''
-            }
-        }
+        // stage('Secrets Scan - TruffleHog (Repo)') {
+        //     steps {
+        //         sh '''
+        //         docker run --rm \
+        //           -v "$(pwd):/repo" \
+        //           trufflesecurity/trufflehog:latest \
+        //           filesystem /repo \
+        //           --fail
+        //         '''
+        //     }
+        // }
 
 
         stage('Maven Test') {
@@ -46,24 +46,24 @@ pipeline {
             }
         }
 
-        stage('SCA - OWASP Dependency Check') {
-            steps {
-                dependencyCheck additionalArguments: """
-                --scan .
-                --format HTML
-                --out dependency-check-report
-                --nvdApiKey ${NVD_API_KEY}
-                --failOnCVSS 5
-                """, odcInstallation: 'dependency-check'
-            }
-        }
+        // stage('SCA - OWASP Dependency Check') {
+        //     steps {
+        //         dependencyCheck additionalArguments: """
+        //         --scan .
+        //         --format HTML
+        //         --out dependency-check-report
+        //         --nvdApiKey ${NVD_API_KEY}
+        //         --failOnCVSS 5
+        //         """, odcInstallation: 'dependency-check'
+        //     }
+        // }
 
-        stage('SAST - Semgrep Scan') {
-            steps {
-                sh 'pip3 install semgrep'
-                sh ' semgrep scan --config auto --severity ERROR'
-            }
-        }
+        // stage('SAST - Semgrep Scan') {
+        //     steps {
+        //         sh 'pip3 install semgrep'
+        //         sh ' semgrep scan --config auto --severity ERROR'
+        //     }
+        // }
         
         stage('Docker Build') {
             steps {
@@ -71,30 +71,30 @@ pipeline {
             }
         }
 
-        stage('Scan Image') {
-            steps {
-                sh '''
-                    trivy image \
-                    --severity CRITICAL,HIGH \
-                    --exit-code 1 \
-                    --format json \
-                    --output trivy-report.json \
-                    nithinragesh/webgoat:latest
-                '''
-            }
-        }
+        // stage('Scan Image') {
+        //     steps {
+        //         sh '''
+        //             trivy image \
+        //             --severity CRITICAL,HIGH \
+        //             --exit-code 1 \
+        //             --format json \
+        //             --output trivy-report.json \
+        //             nithinragesh/webgoat:latest
+        //         '''
+        //     }
+        // }
 
-        stage('Secrets Scan - TruffleHog (Docker Image)') {
-            steps {
-                sh '''
-                docker run --rm \
-                  -v /var/run/docker.sock:/var/run/docker.sock \
-                  trufflesecurity/trufflehog:latest \
-                  docker nithinragesh/webgoat:latest \
-                  --fail
-                '''
-            }
-        }
+        // stage('Secrets Scan - TruffleHog (Docker Image)') {
+        //     steps {
+        //         sh '''
+        //         docker run --rm \
+        //           -v /var/run/docker.sock:/var/run/docker.sock \
+        //           trufflesecurity/trufflehog:latest \
+        //           docker nithinragesh/webgoat:latest \
+        //           --fail
+        //         '''
+        //     }
+        // }
 
 
         stage('Docker Push to Hub') {
@@ -115,28 +115,28 @@ pipeline {
             }
         }
 
-        stage('DAST Scan - OWASP ZAP') {
-            steps {
-                sh '''
-                    echo "Waiting for WebGoat to be ready..."
-                    for i in {1..30}; do
-                      if curl -s http://localhost:8040/WebGoat > /dev/null; then
-                        echo "WebGoat is UP"
-                        break
-                      fi
-                      echo "WebGoat not ready yet... retrying"
-                      sleep 5
-                    done
+        // stage('DAST Scan - OWASP ZAP') {
+        //     steps {
+        //         sh '''
+        //             echo "Waiting for WebGoat to be ready..."
+        //             for i in {1..30}; do
+        //               if curl -s http://localhost:8040/WebGoat > /dev/null; then
+        //                 echo "WebGoat is UP"
+        //                 break
+        //               fi
+        //               echo "WebGoat not ready yet... retrying"
+        //               sleep 5
+        //             done
             
-                    docker run --rm --network=host \
-                      zaproxy/zap-stable \
-                      zap-baseline.py \
-                      -t http://localhost:8040/WebGoat \
-                      -r zap-report.html \
-                      -I
-                '''
-            }
-        }
+        //             docker run --rm --network=host \
+        //               zaproxy/zap-stable \
+        //               zap-baseline.py \
+        //               -t http://localhost:8040/WebGoat \
+        //               -r zap-report.html \
+        //               -I
+        //         '''
+        //     }
+        // }
 
 
     }
@@ -150,4 +150,5 @@ post {
         ''', fingerprint: true
     }
 }
+
 

@@ -1,11 +1,11 @@
 pipeline {
     agent any
 
-    environment {
-        SEMGREP_APP_TOKEN = credentials('SEMGREP_APP_TOKEN')
-        SEMGREP_PR_ID = "${env.CHANGE_ID}"
-        NVD_API_KEY = credentials('NVD_API_KEY')
-    }
+    // environment {
+    //     SEMGREP_APP_TOKEN = credentials('SEMGREP_APP_TOKEN')
+    //     SEMGREP_PR_ID = "${env.CHANGE_ID}"
+    //     NVD_API_KEY = credentials('NVD_API_KEY')
+    // }
 
     tools {
         maven 'maven3'
@@ -142,13 +142,14 @@ pipeline {
     }
 }
 
-post {
-    always {
-        archiveArtifacts artifacts: '''
-            dependency-check-report/dependency-check-report.html,
-            trivy-report.json
-        ''', fingerprint: true
-    }
-}
+// post {
+//     always {
+//         archiveArtifacts artifacts: '''
+//             dependency-check-report/dependency-check-report.html,
+//             trivy-report.json
+//         ''', fingerprint: true
+//     }
+// }
+
 
 

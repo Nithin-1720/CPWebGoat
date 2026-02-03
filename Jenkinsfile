@@ -1,14 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.5-eclipse-temurin-21'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
-
-    tools {
-        maven 'maven3'
-    }
+    agent any
 
     stages {
 
@@ -20,15 +11,27 @@ pipeline {
             }
         }
 
-        stage('Maven Test') {
+        stage('Maven Test (in Java 21 container)') {
             steps {
-                sh "mvn clean test -DskipTests -P'!start-server'"
+                sh '''
+                docker run --rm \
+                  -v "$(pwd):/app" \
+                  -w /app \
+                  maven:3.9.5-eclipse-temurin-21 \
+                  mvn clean test -DskipTests -P'!start-server'
+                '''
             }
         }
 
-        stage('Maven Build') {
+        stage('Maven Build (in Java 21 container)') {
             steps {
-                sh "mvn clean install -DskipTests -P'!start-server'"
+                sh '''
+                docker run --rm \
+                  -v "$(pwd):/app" \
+                  -w /app \
+                  maven:3.9.5-eclipse-temurin-21 \
+                  mvn clean install -DskipTests -P'!start-server'
+                '''
             }
         }
 

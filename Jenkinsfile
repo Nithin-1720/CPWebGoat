@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+    SNYK_PROJECT = "webgoat"
+    SNYK_ORG = "Cyberpwn NFR - Shared"
+    }
+
     stages {
 
         stage('Git Clone') {
@@ -35,6 +40,12 @@ pipeline {
             }
         }
 
+        stage('Snyk open source monitor') {
+            steps {
+                sh 'snyk monitor --org="$SNYK_ORG" --project-name-prefix=webgoat'
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 sh 'docker build -t nithinragesh/webgoat:latest .'
@@ -58,6 +69,18 @@ pipeline {
                 sh 'docker run -d -p 8040:8080 --name=webgoat nithinragesh/webgoat:latest'
             }
         }
+
+        stage('Snyk docker monitor') {
+            steps {
+                sh 'sleep 15'
+                sh 'snyk container monitor nithinragesh/webgoat:latest'
+            }
+        }
+
+        stage('Snyk code test') {
+            steps {
+                sh 'snyk code test --allprojects --report --project-name=webgoat-code --severity-threshold=high'
+            }
+        }
     }
 }
-

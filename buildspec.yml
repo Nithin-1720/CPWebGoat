@@ -1,0 +1,41 @@
+version: 0.2
+
+env:
+  variables:
+    IMAGE_NAME: "nithinragesh/webgoat"
+
+phases:
+
+  install:
+    runtime-versions:
+      java: corretto17
+    commands:
+      - echo "Installing Docker..."
+      - yum install -y docker
+      - mvn -version
+      - java -version
+
+  pre_build:
+    commands:
+      - echo "Setting image tag..."
+      - export TAG=$CODEBUILD_BUILD_NUMBER
+      - echo "Logging into Docker Hub..."
+      - echo $DOCKERHUB_TOKEN | docker login -u nithinragesh --password-stdin
+
+  build:
+    commands:
+      - echo "Building Maven project..."
+      - mvn clean package -DskipITs -P'!start-server'
+
+      - echo "Building Docker image..."
+      - docker build -t $IMAGE_NAME:$TAG .
+
+  post_build:
+    commands:
+      - echo "Pushing Docker image..."
+      - docker push $IMAGE_NAME:$TAG
+      - echo "Build completed successfully."
+
+artifacts:
+  files:
+    - target/*.jar

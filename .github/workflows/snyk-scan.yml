@@ -1,0 +1,52 @@
+name: Build and Snyk Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'latest'
+
+      - name: Install Snyk
+        run: |
+          npm install -g snyk
+          npm install -g snyk-to-html
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Build Maven Project
+        run: mvn clean install -DskipTests -P'!start-server'
+
+      - name: Monitor Project in Snyk
+        run: snyk monitor
+
+      - name: Generate Snyk HTML Report
+        run: snyk test --json | snyk-to-html -o snykoutputwebgoat.html
+
+      - name: Break Build on High Severity
+        run: snyk test --severity-threshold=high
+
+      - name: Upload Snyk Report Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-report
+          path: snykoutputwebgoat.html

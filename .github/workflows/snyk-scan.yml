@@ -10,6 +10,9 @@ jobs:
   build-and-scan:
     runs-on: ubuntu-latest
 
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,8 +33,6 @@ jobs:
           npm install -g snyk
           npm install -g snyk-to-html
 
-      - name: Authenticate Snyk
-        run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
       - name: Build Maven Project
         run: mvn clean install -DskipTests -P'!start-server'

@@ -43,11 +43,14 @@ jobs:
       - name: Generate Snyk HTML Report
         run: snyk test --json | snyk-to-html -o snykoutputwebgoat.html
 
-      - name: Break Build on High Severity
-        run: snyk test --severity-threshold=high
-
       - name: Upload Snyk Report Artifact
         uses: actions/upload-artifact@v4
         with:
           name: snyk-report
           path: snykoutputwebgoat.html
+
+
+      - name: Break Build on High Severity
+        run: snyk test --severity-threshold=high
+
+      

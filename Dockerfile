@@ -1,40 +1,20 @@
-# We need JDK as some of the lessons needs to be able to compile Java code
-FROM docker.io/eclipse-temurin:25-jdk-noble
+FROM python:3.11.7-slim
 
-LABEL name="WebGoat: A deliberately insecure Web Application"
-LABEL maintainer="WebGoat team"
+ENV PYTHONUNBUFFERED=1
+RUN apt update && apt install -y apt-transport-https
+RUN apt install -y  curl procps
+COPY requirements.txt banner.py personal_assistant.py website_summarizer.py main.sh DataSource.pdf aira/
+COPY templates/index.html templates/index2.html aira/templates/
+COPY static/AI.png aira/static/
+RUN mkdir dataset/
 
-RUN \
-  useradd -ms /bin/bash webgoat && \
-  chgrp -R 0 /home/webgoat && \
-  chmod -R g=u /home/webgoat
+RUN chmod -R +x aira/
+RUN chmod -R +x dataset/
 
-USER webgoat
+WORKDIR aira
+RUN pip3 install -r requirements.txt
 
-COPY --chown=webgoat target/webgoat-*.jar /home/webgoat/webgoat.jar
+EXPOSE 5000
+EXPOSE 7000
 
-EXPOSE 8080
-EXPOSE 9090
-
-ENV TZ=Europe/Amsterdam
-
-WORKDIR /home/webgoat
-ENTRYPOINT [ "java", \
-   "-Duser.home=/home/webgoat", \
-   "-Dfile.encoding=UTF-8", \
-   "--add-opens", "java.base/java.lang=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.util=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.text=ALL-UNNAMED", \
-   "--add-opens", "java.desktop/java.beans=ALL-UNNAMED", \
-   "--add-opens", "java.desktop/java.awt.font=ALL-UNNAMED", \
-   "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.io=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.util=ALL-UNNAMED", \
-   "--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED", \
-   "--add-opens", "java.base/java.io=ALL-UNNAMED", \
-   "-Drunning.in.docker=true", \
-   "-jar", "webgoat.jar", "--server.address", "0.0.0.0" ]
-
-HEALTHCHECK --interval=5s --timeout=3s \
-  CMD curl --fail http://localhost:8080/WebGoat/actuator/health || exit 1
+ENTRYPOINT ["bash", "main.sh"]

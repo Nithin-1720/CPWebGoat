@@ -1,6 +1,7 @@
 /*
  * SPDX-FileCopyrightText: Copyright © 2022 WebGoat authors
  * SPDX-License-Identifier: GPL-2.0-or-later
+ * example
  */
 package org.owasp.webgoat.server;
 
@@ -34,6 +35,8 @@ public class StartWebGoat {
 
     printStartUpMessage(webGoatContext);
   }
+
+
 
   private static void printStartUpMessage(ApplicationContext webGoatContext) {
     var url = webGoatContext.getEnvironment().getProperty("webgoat.url");
